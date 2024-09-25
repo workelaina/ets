@@ -279,13 +279,14 @@ def save_models(splitnn, save_dir):
 class Gaussian_MAB_TS():
     def __init__(self, combination, warm_round):
         self.combination = combination
-        self.upper = torch.tensor([0 for _ in range(len(combination))])
-        self.emp = torch.tensor([1.0 for _ in range(len(combination))])
+        _shape = [len(combination)]
+        self.upper = torch.zeros(_shape, dtype=torch.int64)
+        self.emp = torch.ones(_shape)
         self.round = 0
-        self.choice_num = torch.tensor([0 for _ in range(len(combination))])
+        self.choice_num = torch.zeros(_shape)
         self.warm_round = warm_round
-        self.mean = torch.tensor([0 for _ in range(len(combination))], dtype = torch.float32)
-        self.std = torch.tensor([1.0 for _ in range(len(combination))], dtype = torch.float32)
+        self.mean = torch.zeros(_shape, dtype=torch.float32)
+        self.std = torch.ones(_shape, dtype=torch.float32)
 
     def CTS_sample(self):
         self.round += 1
