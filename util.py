@@ -103,6 +103,13 @@ def bandit_nes_adv(embedding, attack_obj, target_label, splitnn,lb, ub, epsilon,
         if not config['nes']:
             ## Updating the prior: 
             # Create noise for exporation, estimate the gradient, and take a PGD step
+            '''
+            We consider the loss function
+                L(eta; C) = −l(f_0(h), y_u)
+            for the untargeted attack with label yu,
+            where l(.) denotes the loss metric,
+            such as cross-entropy or margin loss.
+            '''
             exp_noise = {}
             noise1 = {}
             noise2 = {}
@@ -123,7 +130,9 @@ def bandit_nes_adv(embedding, attack_obj, target_label, splitnn,lb, ub, epsilon,
             for obj in attack_obj:
                 est_grad[obj] = est_deriv.view(-1, 1, 1, 1)*exp_noise[obj]
                 prior[obj] = prior_step(prior[obj], est_grad[obj], config['online_lr'])
+                # prior is grad?
         else:
+            raise ValueError('nes')
             prior = {}
             for obj in attack_obj:
                 prior[obj]= torch.zeros_like(image[obj])
@@ -150,6 +159,10 @@ def bandit_nes_adv(embedding, attack_obj, target_label, splitnn,lb, ub, epsilon,
         
         if not config['nes']:            
             image_step(image, correct_prior, config['image_lr'], attack_obj)
+            # optim: SGD
+            # PGD
+            # atk x (image)
+            # grad = prior
         else:
             nes_step(image, correct_prior, config['image_lr'], attack_obj)
         proj_step(image)

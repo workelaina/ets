@@ -80,13 +80,14 @@ def main(args):
     splitnn = SplitNN(models, data_owners, label_owner, server, device, model_locations)
     splitnn.to(device)
     if args.model_training:
+        raise ValueError(args.model_training)
         splitnn = models_training(splitnn, distributed_testloader, device, config)
     else:
         load_dir = './best_models'
         load_models(splitnn, load_dir)
 
     splitnn.eval()
-    splitnn.activate_model(device)
+    splitnn.activate_model(device)  # .to(device)
 
     success_num = 0
     attack_num = 0
@@ -103,7 +104,7 @@ def main(args):
         target_labels = torch.randint(0,9, (1,), device = device)  
     
     
-    budget = config['budget']
+    budget = config['budget']  # epsilon = 0.3
     
     asr = []
     query_record = []
@@ -118,10 +119,9 @@ def main(args):
             ub = 0.0
             attack_obj, indice, competitive = cts.CTS_sample()
 
-            ##random
-        #  attack_obj = choice(comb)
-        #  indice = comb.index(attack_obj)
-          
+            # #random
+            # attack_obj = choice(comb)
+            # indice = comb.index(attack_obj)
 
             for owner in splitnn.data_owners:
                 data_ptr[owner] = data_ptr[owner].to(device)
@@ -140,6 +140,7 @@ def main(args):
             else:
                 target_labels = labels
             result = bandit_nes_adv(embedding, attack_obj,  target_labels, splitnn, lb, ub, epsilon, config, device, args)
+            # NES: natural evolution strategy
             torch.cuda.empty_cache()
             count = count + 1
             query = query + result['average_queries']
