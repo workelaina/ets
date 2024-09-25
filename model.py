@@ -59,12 +59,15 @@ class SplitNN(torch.nn.Module):
     def zero_grads(self):
         for opt in self.optimizers.values():
             opt.zero_grad()
+
     def steps(self):
         for opt in self.optimizers.values():
             opt.step()
-    def eval(self):
+
+    def train(self):
         for model in self.models.values():
             model.train()
+
     def eval(self):
         for model in self.models.values():
             model.eval()
