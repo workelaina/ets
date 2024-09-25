@@ -1,4 +1,5 @@
-{   "nes": true,
+{
+    "nes": false,
     "fd_eta": 0.1,
     "max_queries": 500,
     "image_lr": 0.25, 
