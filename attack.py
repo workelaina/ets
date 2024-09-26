@@ -60,7 +60,7 @@ def main(args):
     setup_logging()
     config = load_config(args.config)
     
-    seed = random.randint(10, 1000)
+    seed = args.seed
     logging.info(f"Using seed: {seed}")
     torch.manual_seed(seed)
     random.seed(seed)
@@ -179,6 +179,7 @@ if __name__ == "__main__":
     parser.add_argument('--warm_rounds', type=int, default=50, help='The warm rounds in E-TS Alg')
     parser.add_argument('--model_training', type=str2bool, default=False, help='Whether to train the model (True/False)')
     parser.add_argument('--targeted', type=str2bool, default=True, help='Whether to launch the targeted attack (True/False)')
+    parser.add_argument('--seed', type=int, default=3407, required=False, help='Seed seed seeeeeeeeeeeeeeeeeeed')
     args = parser.parse_args()
     
     main(args)
