@@ -278,6 +278,7 @@ def save_models(splitnn, save_dir):
 
 class Gaussian_MAB_TS():
     def __init__(self, combination, warm_round):
+        print('INIT', combination, warm_round)
         self.combination = combination
         _shape = [len(combination)]
         self.upper = torch.zeros(_shape, dtype=torch.int64)
@@ -306,10 +307,12 @@ class Gaussian_MAB_TS():
             sample = torch.normal(self.mean, self.std)
             indice = torch.max(sample,0)[1]
             attack_obj = self.combination[indice]
-            
+        
+        print('CTS_sample', attack_obj, indice, competitive)
         return attack_obj, indice, competitive
 
     def update(self, indice, grad, batchsize):
+        print('CTS_update', indice, grad, batchsize)
         self.choice_num[indice] = self.choice_num[indice] + batchsize
         self.upper[indice] = self.upper[indice].item() if self.upper[indice] >= grad else grad
         self.emp[indice] = (self.emp[indice] * (self.choice_num[indice]-1) + self.upper[indice])/(self.choice_num[indice])
