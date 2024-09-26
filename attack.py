@@ -7,7 +7,8 @@ from random import choice
 from data_dis import Distribute_data
 import os
 import datetime
-from tqdm import tqdm
+# from tqdm import tqdm
+tqdm = lambda x: x
 import argparse
 import json
 import random
