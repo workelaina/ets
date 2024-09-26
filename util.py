@@ -293,14 +293,11 @@ class Gaussian_MAB_TS():
     def CTS_sample(self):
         self.round += 1
         emp_mask = (self.choice_num >= self.round/len(self.combination))
-        print('EMP_MASK', emp_mask)
         sample_mask = torch.where(emp_mask == True, 1, 0)
-        print('sample_mask', sample_mask)
         max_mu, k_max = torch.max(torch.mul(sample_mask, self.mean),0)
         competitive = self.emp >= max_mu
         competitive[k_max] = True
         competitive = torch.where(competitive == True, 1, 0)
-        print('competitive', competitive)
 
         if self.round > self.warm_round:
             sample = torch.normal(self.mean, self.std)
@@ -312,7 +309,7 @@ class Gaussian_MAB_TS():
             indice = torch.max(sample,0)[1]
             attack_obj = self.combination[indice]
         
-        print('CTS_sample', attack_obj, indice, competitive)
+        print('CTS_sample', attack_obj, indice)
         return attack_obj, indice
 
     def update(self, indice, grad):
@@ -320,6 +317,7 @@ class Gaussian_MAB_TS():
         batchsize = 1
         self.choice_num[indice] = self.choice_num[indice] + batchsize
         self.upper[indice] = self.upper[indice].item() if self.upper[indice] >= grad else grad
+        print('CTS_UPPER', self.upper[indice], self.upper)
         self.emp[indice] = (self.emp[indice] * (self.choice_num[indice]-1) + self.upper[indice])/(self.choice_num[indice])
         self.mean[indice] = (self.mean[indice]* (self.choice_num[indice]-1) + grad)/ (self.choice_num[indice])
         self.std[indice] = 1 / (self.choice_num[indice] + 1)
