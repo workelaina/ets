@@ -97,7 +97,7 @@ def main(args):
     comb = list(combinations(splitnn.data_owners, constraint))
     warm_round = 50
 
-    cts =Gaussian_MAB_TS(comb, warm_round )
+    cts =Gaussian_MAB_TS(len(comb), warm_round )
   
     epochs = 3
    
@@ -118,7 +118,8 @@ def main(args):
         for data_ptr, labels in tqdm(distributed_testloader):
             lb = 0.0
             ub = 0.0
-            attack_obj, indice = cts.CTS_sample()
+            indice = cts.CTS_sample()
+            attack_obj = comb[indice]
 
             # #random
             # attack_obj = choice(comb)
@@ -145,7 +146,7 @@ def main(args):
             torch.cuda.empty_cache()
             count = count + 1
             query = query + result['average_queries']
-            cts.update(indice, result['success_rate'])
+            cts.update(result['success_rate'])
             success_num = success_num + result['number_success']
             attack_num = attack_num + batchsize
 

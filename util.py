@@ -276,23 +276,27 @@ def save_models(splitnn, save_dir):
 
 
 
-class Gaussian_MAB_TS():
-    def __init__(self, combination: list, warm_round: int):
-        print('INIT', combination, warm_round)
-        self.combination = combination
-        _shape = [len(combination)]
+class Gaussian_MAB_TS:
+    def __init__(self, n_arm: int, warm_round: int):
+        print('INIT', n_arm, warm_round)
+        # self.combination = combination
+        self.n_arm = n_arm
         _device = torch.device('cuda:0')
-        self.upper = torch.zeros(_shape, dtype=torch.float32, device=_device)
-        self.emp = torch.ones(_shape, device=_device)
         self.round = 0
-        self.choice_num = torch.zeros(_shape, device=_device)
+        self.choice_num = torch.zeros(n_arm, device=_device)
         self.warm_round = warm_round
-        self.mean = torch.zeros(_shape, dtype=torch.float32, device=_device)
-        self.std = torch.ones(_shape, dtype=torch.float32, device=_device)
+        # rmax
+        self.upper = torch.zeros(n_arm, dtype=torch.float32, device=_device)
+        # phi
+        self.emp = torch.ones(n_arm, dtype=torch.float32, device=_device)
+        # mu
+        self.mean = torch.zeros(n_arm, dtype=torch.float32, device=_device)
+        # sigma
+        self.std = torch.ones(n_arm, dtype=torch.float32, device=_device)
 
-    def CTS_sample(self):
+    def CTS_sample(self) -> int:
         self.round += 1
-        emp_mask = (self.choice_num >= self.round/len(self.combination))
+        emp_mask = (self.choice_num >= self.round / self.n_arm)
         sample_mask = torch.where(emp_mask == True, 1, 0)
         max_mu, k_max = torch.max(torch.mul(sample_mask, self.mean),0)
         competitive = self.emp >= max_mu
@@ -303,22 +307,28 @@ class Gaussian_MAB_TS():
             sample = torch.normal(self.mean, self.std)
             sample = torch.mul(sample, competitive)
             indice = torch.max(sample,0)[1]
-            attack_obj = self.combination[indice]
         else:
             sample = torch.normal(self.mean, self.std)
             indice = torch.max(sample,0)[1]
-            attack_obj = self.combination[indice]
-        
-        print('CTS_sample', attack_obj, indice)
-        return attack_obj, indice
 
-    def update(self, indice, grad):
+        print('CTS_sample', indice)
+        self.last_indice = indice
+        return indice
+
+    def update(self, grad: float) -> None:
+        indice = self.last_indice
         print('CTS_update', indice, grad)
-        batchsize = 1
-        self.choice_num[indice] = self.choice_num[indice] + batchsize
+        # n = n + 1
+        self.choice_num[indice] += 1
+
+        # rmax = max(rmax, r)
         self.upper[indice] = self.upper[indice].item() if self.upper[indice] >= grad else grad
         print('CTS_UPPER', self.upper[indice], self.upper)
-        self.emp[indice] = (self.emp[indice] * (self.choice_num[indice]-1) + self.upper[indice])/(self.choice_num[indice])
-        self.mean[indice] = (self.mean[indice]* (self.choice_num[indice]-1) + grad)/ (self.choice_num[indice])
-        self.std[indice] = 1 / (self.choice_num[indice] + 1)
 
+        # phi
+        self.emp[indice] = (self.emp[indice] * (self.choice_num[indice]-1) + self.upper[indice])/(self.choice_num[indice])
+        # mu
+        self.mean[indice] = (self.mean[indice]* (self.choice_num[indice]-1) + grad)/ (self.choice_num[indice])
+
+        # sigma = 1 / (n+1)
+        self.std[indice] = 1 / (self.choice_num[indice] + 1)
