@@ -273,32 +273,28 @@ def save_models(splitnn, save_dir):
     print(f"Models saved in {save_dir}")
 
 
-
-
-
 class Gaussian_MAB_TS:
-    def __init__(self, n_arm: int, warm_round: int):
-        print('INIT', n_arm, warm_round)
-        # self.combination = combination
+    def __init__(self, n_arm: int, warm_round: int, device: str):
         self.n_arm = n_arm
-        _device = torch.device('cuda:0')
-        self.round = 0
-        self.choice_num = torch.zeros(n_arm, device=_device)
         self.warm_round = warm_round
-        # rmax
-        self.upper = torch.zeros(n_arm, dtype=torch.float32, device=_device)
-        # phi
-        self.emp = torch.ones(n_arm, dtype=torch.float32, device=_device)
+        self.device = device
+        self.round = 0
+        # n
+        self.choice_num = torch.zeros(n_arm, device=device)
         # mu
-        self.mean = torch.zeros(n_arm, dtype=torch.float32, device=_device)
+        self.mean = torch.zeros(n_arm, dtype=torch.float32, device=device)
         # sigma
-        self.std = torch.ones(n_arm, dtype=torch.float32, device=_device)
+        self.std = torch.ones(n_arm, dtype=torch.float32, device=device)
+        # rmax
+        self.upper = torch.zeros(n_arm, dtype=torch.float32, device=device)
+        # phi
+        self.emp = torch.ones(n_arm, dtype=torch.float32, device=device)
 
     def CTS_sample(self) -> int:
         self.round += 1
         emp_mask = (self.choice_num >= self.round / self.n_arm)
         sample_mask = torch.where(emp_mask == True, 1, 0)
-        max_mu, k_max = torch.max(torch.mul(sample_mask, self.mean),0)
+        max_mu, k_max = torch.max(torch.mul(sample_mask, self.mean), 0)
         competitive = self.emp >= max_mu
         competitive[k_max] = True
         competitive = torch.where(competitive == True, 1, 0)
@@ -320,15 +316,11 @@ class Gaussian_MAB_TS:
         print('CTS_update', indice, grad)
         # n = n + 1
         self.choice_num[indice] += 1
-
-        # rmax = max(rmax, r)
-        self.upper[indice] = self.upper[indice].item() if self.upper[indice] >= grad else grad
-        print('CTS_UPPER', self.upper[indice], self.upper)
-
-        # phi
-        self.emp[indice] = (self.emp[indice] * (self.choice_num[indice]-1) + self.upper[indice])/(self.choice_num[indice])
         # mu
-        self.mean[indice] = (self.mean[indice]* (self.choice_num[indice]-1) + grad)/ (self.choice_num[indice])
-
+        self.mean[indice] += (grad - self.mean[indice]) / self.choice_num[indice]
         # sigma = 1 / (n+1)
         self.std[indice] = 1 / (self.choice_num[indice] + 1)
+        # rmax = max(rmax, r)
+        self.upper[indice] = self.upper[indice] if self.upper[indice] >= grad else grad
+        # phi
+        self.emp[indice] += (self.upper[indice] - self.emp[indice]) / self.choice_num[indice]
