@@ -282,7 +282,7 @@ class Gaussian_MAB_TS():
         self.combination = combination
         _shape = [len(combination)]
         _device = torch.device('cuda:0')
-        self.upper = torch.zeros(_shape, dtype=torch.int64, device=_device)
+        self.upper = torch.zeros(_shape, dtype=torch.float32, device=_device)
         self.emp = torch.ones(_shape, device=_device)
         self.round = 0
         self.choice_num = torch.zeros(_shape, device=_device)
