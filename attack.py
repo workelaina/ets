@@ -118,7 +118,7 @@ def main(args):
         for data_ptr, labels in tqdm(distributed_testloader):
             lb = 0.0
             ub = 0.0
-            attack_obj, indice, competitive = cts.CTS_sample()
+            attack_obj, indice = cts.CTS_sample()
 
             # #random
             # attack_obj = choice(comb)
@@ -145,7 +145,7 @@ def main(args):
             torch.cuda.empty_cache()
             count = count + 1
             query = query + result['average_queries']
-            cts.update(indice, result['success_rate'], 1)
+            cts.update(indice, result['success_rate'])
             success_num = success_num + result['number_success']
             attack_num = attack_num + batchsize
 

@@ -277,17 +277,18 @@ def save_models(splitnn, save_dir):
 
 
 class Gaussian_MAB_TS():
-    def __init__(self, combination, warm_round):
+    def __init__(self, combination: list, warm_round: int):
         print('INIT', combination, warm_round)
         self.combination = combination
         _shape = [len(combination)]
-        self.upper = torch.zeros(_shape, dtype=torch.int64)
-        self.emp = torch.ones(_shape)
+        _device = torch.device('cuda:0')
+        self.upper = torch.zeros(_shape, dtype=torch.int64, device=_device)
+        self.emp = torch.ones(_shape, device=_device)
         self.round = 0
-        self.choice_num = torch.zeros(_shape)
+        self.choice_num = torch.zeros(_shape, device=_device)
         self.warm_round = warm_round
-        self.mean = torch.zeros(_shape, dtype=torch.float32)
-        self.std = torch.ones(_shape, dtype=torch.float32)
+        self.mean = torch.zeros(_shape, dtype=torch.float32, device=_device)
+        self.std = torch.ones(_shape, dtype=torch.float32, device=_device)
 
     def CTS_sample(self):
         self.round += 1
@@ -312,10 +313,11 @@ class Gaussian_MAB_TS():
             attack_obj = self.combination[indice]
         
         print('CTS_sample', attack_obj, indice, competitive)
-        return attack_obj, indice, competitive
+        return attack_obj, indice
 
-    def update(self, indice, grad, batchsize):
-        print('CTS_update', indice, grad, batchsize)
+    def update(self, indice, grad):
+        print('CTS_update', indice, grad)
+        batchsize = 1
         self.choice_num[indice] = self.choice_num[indice] + batchsize
         self.upper[indice] = self.upper[indice].item() if self.upper[indice] >= grad else grad
         self.emp[indice] = (self.emp[indice] * (self.choice_num[indice]-1) + self.upper[indice])/(self.choice_num[indice])
