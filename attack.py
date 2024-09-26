@@ -163,6 +163,10 @@ def main(args):
     os.makedirs(results_dir, exist_ok=True)
     time_stamp = datetime.datetime.now().strftime("%m%d%H%M")
     np.save(os.path.join(results_dir, f'results_{time_stamp}.npy'), [asr, query_record, round_record])
+    print()
+    print()
+    print(asr, query_record, round_record)
+    print()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run adversarial attack on Split Neural Network")
