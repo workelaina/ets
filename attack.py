@@ -97,10 +97,10 @@ def main(args):
     comb = list(combinations(splitnn.data_owners, constraint))
     warm_round = 50
 
-    cts =Gaussian_MAB_TS(len(comb), warm_round )
-  
-    epochs = 3
-   
+    cts = Gaussian_MAB_TS(len(comb), warm_round, torch.device('cuda:0'))
+
+    epochs = 2
+
     if args.targeted:
         target_labels = torch.randint(0,9, (1,), device = device)  
     
