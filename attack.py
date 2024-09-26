@@ -146,6 +146,7 @@ def main(args):
             torch.cuda.empty_cache()
             count = count + 1
             query = query + result['average_queries']
+            print(attack_obj, result['success_rate'])
             cts.update(result['success_rate'])
             success_num = success_num + result['number_success']
             attack_num = attack_num + batchsize

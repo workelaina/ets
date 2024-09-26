@@ -307,13 +307,11 @@ class Gaussian_MAB_TS:
             sample = torch.normal(self.mean, self.std)
             indice = torch.max(sample,0)[1]
 
-        print('CTS_sample', indice)
         self.last_indice = indice
         return indice
 
     def update(self, grad: float) -> None:
         indice = self.last_indice
-        print('CTS_update', indice, grad)
         # n = n + 1
         self.choice_num[indice] += 1
         # mu
